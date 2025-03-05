@@ -24,12 +24,10 @@ public class UserService {
  // Create user and set default active status
     public User createUser(User user) {
         user.setUpdatedAt(LocalDateTime.now());
-        user.setStatus(0); // Pending by default
+        user.setStatus(3); // Pending by default
         user.setReports(0); // 0 Reports by default
         return userRepository.save(user);
     }
-
-
 
     // Get all users
     public List<User> getAllUsers() {
@@ -56,6 +54,10 @@ public class UserService {
         return userRepository.findById(id);
     }
 
+    // Get user by Email
+    public Optional<User> getUserByEmail(String email) {
+        return userRepository.findByEmail(email);
+    }
     // Update user
     public User updateUser(UUID id, User userDetails) {
         return userRepository.findById(id).map(user -> {

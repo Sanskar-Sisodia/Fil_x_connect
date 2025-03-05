@@ -61,6 +61,12 @@ public class UserController {
         return ResponseEntity.ok(userService.getUserById(id));
     }
 
+    @Operation(summary = "Get user by Email", description = "Retrieves a user based on their Email")
+    @GetMapping("/getByEmail/{email}")
+    public ResponseEntity<Optional<User>> getUserById(@PathVariable String email) {
+        return ResponseEntity.ok(userService.getUserByEmail(email));
+    }
+
     @Operation(summary = "Update user", description = "Updates user details based on ID")
     @PutMapping("/{id}")
     public ResponseEntity<User> updateUser(@PathVariable UUID id, @RequestBody User userDetails) {
