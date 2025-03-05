@@ -1,26 +1,32 @@
-# Use a valid Maven image with JDK 17
+# Use Maven with JDK 17 for building the application
 FROM maven:3.8.8-eclipse-temurin-17 AS builder
 
 # Set the working directory
 WORKDIR /app
 
-# Copy the project files
+# Copy the pom.xml and dependency files first
+COPY pom.xml .
+
+# Download dependencies (this helps in caching layers)
+RUN mvn dependency:go-offline
+
+# Now copy the entire project
 COPY . .
 
-# Build the application
+# Run Maven to build the application
 RUN mvn clean package -DskipTests
 
-# Use a lightweight OpenJDK image for running the application
+# Use a lightweight JDK image for running the application
 FROM eclipse-temurin:17-jdk
 
 # Set the working directory
 WORKDIR /app
 
-# Copy the built JAR from the builder stage
+# Copy only the built JAR from the builder stage
 COPY --from=builder /app/target/*.jar app.jar
 
-# Expose the port
+# Expose the application port
 EXPOSE 8080
 
-# Run the application
+# Start the application
 ENTRYPOINT ["java", "-jar", "app.jar"]
