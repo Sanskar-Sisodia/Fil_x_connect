@@ -1,11 +1,14 @@
 # Use Maven with JDK 17 for building the application
 FROM maven:3.8.8-eclipse-temurin-17 AS builder
 
-# Set the working directory inside the container
+# Set the working directory
 WORKDIR /app
 
-# Copy the project files correctly (since your files are inside filxconnect/)
-COPY filxconnect/ .
+# Copy the project files correctly (since your project is inside filxconnect/filxconnect/)
+COPY filxconnect/filxconnect/ .
+
+# Ensure `pom.xml` is in the correct location
+RUN ls -la /app
 
 # Build the application
 RUN mvn clean package -DskipTests
