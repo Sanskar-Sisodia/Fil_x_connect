@@ -1,25 +1,25 @@
-# Use an official OpenJDK runtime as a base image
-FROM maven:3.8.7-openjdk-17 AS builder
+# Use a valid Maven image with JDK 17
+FROM maven:3.8.8-eclipse-temurin-17 AS builder
 
 # Set the working directory
 WORKDIR /app
 
-# Copy the entire project
+# Copy the project files
 COPY . .
 
-# Build the application using system-wide Maven
+# Build the application
 RUN mvn clean package -DskipTests
 
-# Create a new image for running the application
-FROM openjdk:17-jdk-slim
+# Use a lightweight OpenJDK image for running the application
+FROM eclipse-temurin:17-jdk
 
 # Set the working directory
 WORKDIR /app
 
-# Copy the built JAR file from the builder stage
+# Copy the built JAR from the builder stage
 COPY --from=builder /app/target/*.jar app.jar
 
-# Expose the port that the Spring Boot application runs on
+# Expose the port
 EXPOSE 8080
 
 # Run the application
