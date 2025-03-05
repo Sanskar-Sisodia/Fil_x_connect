@@ -1,14 +1,14 @@
 # Use an official OpenJDK runtime as a base image
-FROM openjdk:17-jdk-slim AS builder
+FROM maven:3.8.7-openjdk-17 AS builder
 
 # Set the working directory
 WORKDIR /app
 
-# Copy the Maven wrapper and project files
+# Copy the entire project
 COPY . .
 
-# Build the application
-RUN ./mvnw clean package -DskipTests
+# Build the application using system-wide Maven
+RUN mvn clean package -DskipTests
 
 # Create a new image for running the application
 FROM openjdk:17-jdk-slim
