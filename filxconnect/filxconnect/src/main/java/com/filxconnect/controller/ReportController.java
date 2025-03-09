@@ -64,4 +64,9 @@ public class ReportController {
     public ResponseEntity<?> updatePostReportStatus(@PathVariable UUID postId, @RequestParam ReportStatus status) {
         return ResponseEntity.ok(reportService.updateReportStatus(postId, status));
     }
+
+    @PutMapping("/changeStatus/{id}/{status}")
+    public ResponseEntity<?> changeReportStatus(@PathVariable UUID id, @PathVariable ReportStatus status) {
+        return ResponseEntity.ok(reportService.updateReportStatus(id, status));
+    }
 }
