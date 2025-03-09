@@ -1,9 +1,8 @@
 package com.filxconnect.service;
 
+import com.filxconnect.entity.*;
+import com.filxconnect.repository.NotificationRepository;
 import org.springframework.stereotype.Service;
-import com.filxconnect.entity.Comment;
-import com.filxconnect.entity.Post;
-import com.filxconnect.entity.User;
 import com.filxconnect.repository.CommentRepository;
 import com.filxconnect.repository.PostRepository;
 import com.filxconnect.repository.UserRepository;
@@ -19,11 +18,13 @@ public class CommentService {
     private final CommentRepository commentRepository;
     private final PostRepository postRepository;
     private final UserRepository userRepository;
+    private final NotificationRepository notificationRepository;
 
-    public CommentService(CommentRepository commentRepository, PostRepository postRepository, UserRepository userRepository) {
+    public CommentService(CommentRepository commentRepository, PostRepository postRepository, UserRepository userRepository, NotificationRepository notificationRepository) {
         this.commentRepository = commentRepository;
         this.postRepository = postRepository;
         this.userRepository = userRepository;
+        this.notificationRepository = notificationRepository;
     }
 
     // ✅ Add a comment with validation
@@ -42,7 +43,19 @@ public class CommentService {
         comment.setUser(user);
         comment.setContent(content);
 
-        return commentRepository.save(comment);
+        Comment savedComment = commentRepository.save(comment);
+
+        if (userId == savedComment.getPost().getUser().getId()) {
+            return savedComment;
+        }
+        Notification notification = new Notification();
+        notification.setUserId(postRepository.findById(postId).orElseThrow().getUser().getId());
+        notification.setSender(savedComment.getUser().getUsername());
+        notification.setSenderPic(savedComment.getUser().getProfilePicture());
+        notification.setMessage("Commented on your post!");
+        notification.setPostId(savedComment.getPost().getId());
+        notificationRepository.save(notification);
+        return savedComment;
     }
 
     // ✅ Get all comments for a post
