@@ -1,8 +1,14 @@
 package com.filxconnect.entity;
 
 import jakarta.persistence.*;
+import lombok.Data;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
+
+import java.sql.Timestamp;
 import java.util.UUID;
 
+@Data
 @Entity
 public class Post {
 	@Id
@@ -14,14 +20,26 @@ public class Post {
     @JoinColumn(name = "user_id", nullable = false)  // Ensure correct column mapping
     private User user;
 
+    @CreationTimestamp
+    private Timestamp createdAt;
+
+    @UpdateTimestamp
+    private Timestamp updatedAt;
+
     private String title;
     private String content;
-    private String caption;
     private char status;
 
     // Getters & Setters
     public UUID getId() {
         return id;
+    }
+
+    public Timestamp getCreatedAt() {
+        return createdAt;
+    }
+    public Timestamp getUpdatedAt() {
+        return updatedAt;
     }
 
     public void setId(UUID id) {
@@ -52,18 +70,18 @@ public class Post {
         this.content = content;
     }
 
-    public String getCaption() {
-        return caption;
-    }
-
-    public void setCaption(String caption) {
-        this.caption = caption;
-    }
     public char getStatus() {
     	return this.status;
     }
     
     public void setStatus(char status) {
     	this.status = status;
+    }
+
+    public void setCreatedAt(Timestamp createdAt) {
+        this.createdAt = createdAt;
+    }
+    public void setUpdatedAt(Timestamp updatedAt) {
+        this.updatedAt = updatedAt;
     }
 }
