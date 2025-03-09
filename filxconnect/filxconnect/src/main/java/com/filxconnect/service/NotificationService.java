@@ -1,5 +1,6 @@
 package com.filxconnect.service;
 
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import com.filxconnect.entity.Notification;
@@ -30,6 +31,7 @@ public class NotificationService {
     public Notification sendWarning(UUID userId) {
         Notification notification = new Notification();
         notification.setUserId(userId);
+        notification.setSender("Admin");
         notification.setMessage("Warning! You have been reported!");
         notification.setRead(false);
         return notificationRepository.save(notification);
@@ -49,11 +51,12 @@ public class NotificationService {
     }
 
     // ✅ Mark all notifications for a user as read
-    public void markAllAsRead(UUID userId) {
+    public ResponseEntity markAllAsRead(UUID userId) {
         List<Notification> notifications = notificationRepository.findByUserId(userId);
         for (Notification notification : notifications) {
             notification.setRead(true);
         }
         notificationRepository.saveAll(notifications);
+        return null;
     }
 }
