@@ -1,5 +1,10 @@
 package com.filxconnect.service;
 
+import com.filxconnect.entity.AdminNotification;
+import com.filxconnect.entity.Notification;
+import com.filxconnect.repository.AdminNotificationRepository;
+import com.filxconnect.repository.NotificationRepository;
+import com.sun.nio.sctp.Association;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -15,10 +20,16 @@ import java.util.UUID;
 public class UserService {
 
     private final UserRepository userRepository;
+    private final NotificationService notificationService;
+    private final NotificationRepository notificationRepository;
+    private final AdminNotificationRepository adminNotificationRepository;
 
     @Autowired
-    public UserService(UserRepository userRepository) {
+    public UserService(UserRepository userRepository, NotificationService notificationService, NotificationRepository notificationRepository, AdminNotificationRepository adminNotificationRepository) {
         this.userRepository = userRepository;
+        this.notificationService = notificationService;
+        this.notificationRepository = notificationRepository;
+        this.adminNotificationRepository = adminNotificationRepository;
     }
 
  // Create user and set default active status
@@ -26,6 +37,13 @@ public class UserService {
         user.setUpdatedAt(LocalDateTime.now());
         user.setStatus(3); // Pending by default
         user.setReports(0); // 0 Reports by default
+
+        AdminNotification adminNotification = new AdminNotification();
+        adminNotification.setSender(user.getUsername());
+        adminNotification.setSenderPic(user.getProfilePicture());
+        adminNotification.setMessage("New user created!");
+        adminNotificationRepository.save(adminNotification);
+
         return userRepository.save(user);
     }
 
@@ -77,22 +95,22 @@ public class UserService {
             return userRepository.save(user);
         }).orElseThrow(() -> new RuntimeException("User not found with ID: " + id));
     }
-    
-    
+
     // Approve User Registration
     public User approveUser(UUID id) {
+        Notification notification = new Notification();
+        notification.setUserId(id);
+        notification.setSender("Admin");
+        notification.setMessage("Your account has been approved.");
+        notification.setPostId(null);
+        notification.setRead(false);
+        notificationRepository.save(notification);
+
         return userRepository.findById(id).map(user -> {
             user.setStatus(1); // Rejected
             user.setUpdatedAt(LocalDateTime.now());
             return userRepository.save(user);
         }).orElseThrow(() -> new RuntimeException("User not found with ID: " + id));
-    }
-    
-    public void incReports(UUID id) {
-    	userRepository.findById(id).map(user -> {
-    		user.setReports(user.getReports()+1);
-    		return userRepository.save(user);
-    	}).orElseThrow(() -> new RuntimeException("User not found with ID: " + id));
     }
     
  // Reject User Registration
