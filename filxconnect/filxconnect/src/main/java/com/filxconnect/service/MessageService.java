@@ -34,9 +34,19 @@ public class MessageService {
         message.setSenderId(senderId);
         message.setReceiverId(receiverId);
         message.setContent(content);
+        message.setIsRead(false);
         message.setCreatedAt(new Timestamp(System.currentTimeMillis())); // ✅ Store Timestamp
 
         return messageRepository.save(message);
+    }
+
+    // Mark as read
+    public Integer readMessage(UUID id){
+        Message message = messageRepository.findById(id)
+                .orElseThrow();
+        message.setIsRead(true);
+        messageRepository.save(message);
+        return 1;
     }
 
     // ✅ Get conversation messages (Bi-directional)
