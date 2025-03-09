@@ -21,6 +21,12 @@ public class Notification {
     private UUID userId;
 
     @Column
+    private String sender;
+
+    @Column(name = "sender_pic")
+    private String senderPic;
+
+    @Column
     private UUID postId; // ✅ Linked to post
 
     @Column(name = "message", nullable = false)
@@ -39,10 +45,20 @@ public class Notification {
     public UUID getPostId() { return postId; }
     public String getMessage() { return message; }
     public boolean isRead() { return isRead; }
+    public String getSender() { return sender; }
 
     // ✅ Setters
     public void setUserId(UUID userId) { this.userId = userId; }
     public void setPostId(UUID postId) { this.postId = postId; }
     public void setMessage(String message) { this.message = message; }
     public void setRead(boolean read) { this.isRead = read; }
+    public void setSender(String sender) { this.sender = sender; }
+    
+    public void setSenderPic(String senderPic) {
+        this.senderPic = senderPic;
+    }
+
+    public String getSenderPic() {
+        return senderPic;
+    }
 }
