@@ -21,7 +21,7 @@ public class User {
     @JsonProperty("id")
     private UUID id;
 
-    @Column(nullable = false, unique = true, length = 50)
+    @Column(nullable = false, unique = false, length = 50)
     private String username;
     
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
@@ -37,7 +37,7 @@ public class User {
     @Column(columnDefinition = "TEXT")
     private String profilePicture;
 
-    @Column(columnDefinition = "TEXT")
+    @Column(columnDefinition = "TEXT",length = 20)
     private String bio;
 
     @Column(nullable = false)
