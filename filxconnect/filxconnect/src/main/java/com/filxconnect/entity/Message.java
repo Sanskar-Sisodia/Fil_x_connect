@@ -21,6 +21,9 @@ public class Message {
     @Column(name = "content", columnDefinition = "TEXT")
     private String content;
 
+    @Column(name = "is_read", nullable = false)
+    private Boolean isRead;
+
     @Column(name = "created_at", nullable = false, updatable = false)
     private Timestamp createdAt;
 
@@ -39,4 +42,7 @@ public class Message {
 
     public Timestamp getCreatedAt() { return createdAt; }
     public void setCreatedAt(Timestamp createdAt) { this.createdAt = createdAt; }
+
+    public Boolean getIsRead() { return isRead; }
+    public void setIsRead(Boolean isRead) { this.isRead = isRead; }
 }
