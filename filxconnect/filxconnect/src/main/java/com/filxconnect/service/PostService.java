@@ -1,18 +1,13 @@
 package com.filxconnect.service;
 
+import com.filxconnect.entity.*;
+import com.filxconnect.repository.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.filxconnect.dto.PostDTO;
-import com.filxconnect.entity.Media;
-import com.filxconnect.entity.MediaType;
-import com.filxconnect.entity.Post;
-import com.filxconnect.entity.User;
-import com.filxconnect.repository.MediaRepository;
-import com.filxconnect.repository.PostRepository;
-import com.filxconnect.repository.UserRepository;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import java.util.List;
@@ -23,15 +18,29 @@ public class PostService {
 
     private static final Logger logger = LoggerFactory.getLogger(PostService.class);
 
-    @Autowired
-    private PostRepository postRepository;
 
-    @Autowired
-    private UserRepository userRepository;
+    private final PostRepository postRepository;
 
-    @Autowired
-    private MediaRepository mediaRepository;
-    
+    private final UserRepository userRepository;
+
+    private final MediaRepository mediaRepository;
+
+    private final NotificationService notificationService;
+
+    private final FollowerService followerService;
+    private final NotificationRepository notificationRepository;
+    private final AdminNotificationRepository adminNotificationRepository;
+
+    public PostService(PostRepository postRepository, UserRepository userRepository, MediaRepository mediaRepository, NotificationService notificationService, FollowerService followerService, NotificationRepository notificationRepository, AdminNotificationRepository adminNotificationRepository) {
+        this.postRepository = postRepository;
+        this.userRepository = userRepository;
+        this.mediaRepository = mediaRepository;
+        this.notificationService = notificationService;
+        this.followerService = followerService;
+        this.notificationRepository = notificationRepository;
+        this.adminNotificationRepository = adminNotificationRepository;
+    }
+
     @Transactional
     public Post createPost(PostDTO postDTO) {
         logger.info("Creating a new post for user: {}", postDTO.getUserId());
@@ -46,7 +55,6 @@ public class PostService {
         post.setTitle(postDTO.getTitle());
         post.setContent(postDTO.getContent());
         post.setStatus('3');
-        post.setCaption(postDTO.getCaption());
 
         Post savedPost = postRepository.save(post);
         postRepository.flush();  // ✅ Ensure post is saved before media is inserted
@@ -58,15 +66,22 @@ public class PostService {
             for (String mediaUrl : postDTO.getMediaUrls()) {
                 Media media = new Media();
                 media.setMediaUrl(mediaUrl);
-                media.setPost(savedPost);
+                media.setPostId(savedPost.getId());
 
                 // ✅ Determine media type based on file extension
-                media.setMediaType(mediaUrl.endsWith(".mp4") ? MediaType.VIDEO : MediaType.IMAGE);
+                media.setMediaType(mediaUrl.endsWith(".mp4") ? "VIDEO" : "IMAGE");
 
                 mediaRepository.save(media);
                 logger.info("Media saved successfully: {}", mediaUrl);
             }
         }
+
+        AdminNotification adminNotification = new AdminNotification();
+        adminNotification.setSender(user.getUsername());
+        adminNotification.setSenderPic(user.getProfilePicture());
+        adminNotification.setMessage("added a post!");
+        adminNotification.setPostId(savedPost.getId());
+        adminNotificationRepository.save(adminNotification);
 
         return savedPost;
     }
@@ -114,7 +129,6 @@ public class PostService {
         
         post.setTitle(postDTO.getTitle());
         post.setContent(postDTO.getContent());
-        post.setCaption(postDTO.getCaption());
         
         return postRepository.save(post);
     }
@@ -125,6 +139,20 @@ public class PostService {
         
         post.setStatus('1'); // Approved
         postRepository.save(post);
+
+        User user = post.getUser();
+        List<User> followers = followerService.getFollowers(user.getId());
+        for(User userFollower : followers) {
+            Notification notification = new Notification();
+            notification.setUserId(userFollower.getId());
+            notification.setSender(user.getUsername());
+            notification.setSenderPic(user.getProfilePicture());
+            notification.setRead(false);
+            notification.setPostId(post.getId());
+            notification.setMessage("has added a post!");
+            notificationRepository.save(notification);
+            logger.info("Notification generated for : {}", notification.getUserId());
+        }
         return '1';
     }
     
