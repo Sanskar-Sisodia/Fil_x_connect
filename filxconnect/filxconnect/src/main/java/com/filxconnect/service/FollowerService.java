@@ -1,6 +1,8 @@
 package com.filxconnect.service;
 
+import com.filxconnect.entity.Notification;
 import com.filxconnect.entity.User;
+import com.filxconnect.repository.NotificationRepository;
 import com.filxconnect.repository.UserRepository;
 import org.springframework.stereotype.Service;
 
@@ -15,11 +17,13 @@ public class FollowerService {
 
     private final FollowerRepository followerRepository;
     private final UserRepository userRepository;
+    private final NotificationRepository notificationRepository;
 
     // Constructor for dependency injection
-    public FollowerService(FollowerRepository followerRepository, UserRepository userRepository) {
+    public FollowerService(FollowerRepository followerRepository, UserRepository userRepository, NotificationRepository notificationRepository) {
         this.followerRepository = followerRepository;
         this.userRepository = userRepository;
+        this.notificationRepository = notificationRepository;
     }
 
     public long countByFollowerId(UUID followerId) {
@@ -35,6 +39,15 @@ public class FollowerService {
         Follower newFollower = new Follower();
         newFollower.setFollowerId(followerId);
         newFollower.setFollowingId(followingId);
+
+        Notification notification = new Notification();
+        notification.setUserId(followingId);
+        User user = userRepository.findById(followerId).orElseThrow(() -> new RuntimeException("User not found with ID: " + followerId));
+        notification.setSender(user.getUsername());
+        notification.setSenderPic(user.getProfilePicture());
+        notification.setMessage("started following you!");
+        notificationRepository.save(notification);
+
         return followerRepository.save(newFollower);
     }
 
@@ -43,7 +56,12 @@ public class FollowerService {
         followerRepository.deleteByFollowerIdAndFollowingId(followerId, followingId);
         System.out.println("User unfollowed");
     }
-
+    //Get the list of users who follow the given user
+    public List<User> getFollowers(UUID userId) {
+        List<UUID> followedUserIds = followerRepository.findByFollowingId(userId)
+                .stream().map(Follower::getFollowerId).toList();
+        return userRepository.findAllById(followedUserIds);
+    }
     // Get the list of users followed by a given user
     public List<User> getFollowedUsers(UUID userId) {
         List<UUID> followedUserIds = followerRepository.findByFollowerId(userId)
