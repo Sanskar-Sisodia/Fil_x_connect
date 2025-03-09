@@ -1,5 +1,9 @@
 package com.filxconnect.service;
 
+import com.filxconnect.entity.Post;
+import com.filxconnect.entity.User;
+import com.filxconnect.repository.PostRepository;
+import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -16,9 +20,16 @@ import java.util.stream.Collectors;
 
 @Service
 public class ReportService {
-    @Autowired
-    private ReportRepository reportRepository;
-    private UserService userService;
+
+    private final ReportRepository reportRepository;
+    private final UserRepository userRepository;
+    private final PostRepository postRepository;
+
+    public ReportService(ReportRepository reportRepository, UserService userService, UserRepository userRepository, PostRepository postRepository) {
+        this.reportRepository = reportRepository;
+        this.userRepository = userRepository;
+        this.postRepository = postRepository;
+    }
 
     // ✅ Report a User
     public Report reportUser(UserReportDTO userReportDTO) {
@@ -27,7 +38,11 @@ public class ReportService {
         report.setReportedUserId(userReportDTO.getReportedUserId());
         report.setReason(userReportDTO.getReason());
         reportRepository.save(report);
-        userService.incReports(userReportDTO.getReportedUserId());
+
+        User user = userRepository.findById(userReportDTO.getReportedUserId())
+                .orElseThrow(() -> new EntityNotFoundException("User not found"));
+        user.setReports(user.getReports()+1);
+        userRepository.save(user);
         return report;
     }
 
@@ -35,9 +50,14 @@ public class ReportService {
     public Report reportPost(PostReportDTO postReportDTO) {
         Report report = new Report();
         report.setReporterUserId(postReportDTO.getReporterUserId());
+        Post post = postRepository.findById(postReportDTO.getReportedPostId())
+                .orElseThrow(() -> new EntityNotFoundException("Post not found"));
+
+        report.setReportedUserId(post.getUser().getId());
         report.setReportedPostId(postReportDTO.getReportedPostId());
         report.setReason(postReportDTO.getReason());
         reportRepository.save(report);
+
         return report;
     }
 
@@ -83,5 +103,12 @@ public class ReportService {
 
         reportRepository.saveAll(reports);
         return "Post report status updated successfully";
+    }
+
+    public Integer changeStatus(UUID id, ReportStatus status) {
+        Report report = reportRepository.findById(id).orElseThrow();
+        report.setReportStatus(status);
+        reportRepository.save(report);
+        return 1;
     }
 }
