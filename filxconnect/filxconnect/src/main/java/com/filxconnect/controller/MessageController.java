@@ -33,6 +33,12 @@ public class MessageController {
         return ResponseEntity.ok(messageService.getMessages(senderId, receiverId));
     }
 
+    // Mark a message as read
+    @PutMapping("/mark/{id}")
+    public ResponseEntity<Integer> readMessage(@PathVariable UUID id) {
+        return ResponseEntity.ok(messageService.readMessage(id));
+    }
+
     // ✅ Get all messages of a user (for chat previews)
     @GetMapping("/user/{userId}")
     public ResponseEntity<List<Message>> getUserMessages(@PathVariable UUID userId) {
