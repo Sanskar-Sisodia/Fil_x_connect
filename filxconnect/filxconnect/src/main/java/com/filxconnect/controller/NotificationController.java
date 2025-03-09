@@ -47,8 +47,8 @@ public class NotificationController {
 
     // ✅ Mark All Notifications for a User as Read (PUT)
     @PutMapping("/mark-all/{userId}")
-    public ResponseEntity<String> markAllAsRead(@PathVariable UUID userId) {
+    public ResponseEntity<Integer> markAllAsRead(@PathVariable UUID userId) {
         notificationService.markAllAsRead(userId);
-        return ResponseEntity.ok("All notifications marked as read.");
+        return ResponseEntity.ok(1);
     }
 }
