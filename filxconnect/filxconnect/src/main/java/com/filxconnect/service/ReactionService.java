@@ -1,14 +1,15 @@
 package com.filxconnect.service;
 
 import com.filxconnect.dto.ReactionResponseDTO;
+import com.filxconnect.entity.Notification;
 import com.filxconnect.entity.Reaction;
+import com.filxconnect.repository.NotificationRepository;
 import com.filxconnect.repository.ReactionRepository;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import com.filxconnect.dto.ApiResponse;
-import com.filxconnect.dto.LikeResponseDTO;
 import com.filxconnect.entity.User;
 import com.filxconnect.repository.PostRepository;
 import com.filxconnect.repository.UserRepository;
@@ -26,13 +27,16 @@ public class ReactionService {
     private final ReactionRepository reactionRepository;
     private final PostRepository postRepository;
     private final UserRepository userRepository;
-    private static final Logger logger = LoggerFactory.getLogger(LikeService.class);
+    private final NotificationRepository notificationRepository;
+
+    private static final Logger logger = LoggerFactory.getLogger(ReactionService.class);
 
 
-    public ReactionService(ReactionRepository reactionRepository, PostRepository postRepository, UserRepository userRepository) {
+    public ReactionService(ReactionRepository reactionRepository, PostRepository postRepository, UserRepository userRepository, NotificationRepository notificationRepository) {
         this.reactionRepository = reactionRepository;
         this.postRepository = postRepository;
         this.userRepository = userRepository;
+        this.notificationRepository = notificationRepository;
     }
 
     // ✅ React on a Post
@@ -56,6 +60,17 @@ public class ReactionService {
         // ✅ Create and save like
         Reaction reaction = new Reaction(postId, userId, emoji);
         reaction = reactionRepository.save(reaction);
+
+        if (userId == postRepository.findById(postId).orElseThrow().getUser().getId()) {
+            return ResponseEntity.ok(new ApiResponse(true, "✅ Success: Post liked!", new ReactionResponseDTO(reaction)));
+        }
+        Notification notification = new Notification();
+        notification.setPostId(postId);
+        notification.setUserId(postRepository.findById(postId).orElseThrow().getUser().getId());
+        notification.setSender(userRepository.findById(userId).orElseThrow().getUsername());
+        notification.setMessage("liked your post!");
+        notification.setSenderPic(userRepository.findById(userId).orElseThrow().getProfilePicture());
+        notificationRepository.save(notification);
 
         return ResponseEntity.ok(new ApiResponse(true, "✅ Success: Post liked!", new ReactionResponseDTO(reaction)));
     }
