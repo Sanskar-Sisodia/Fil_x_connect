@@ -14,14 +14,11 @@ public class Media {
     @Column(name = "media_url", nullable = false)
     private String mediaUrl;
 
-    @Enumerated(EnumType.STRING)
     @Column(name = "media_type", nullable = false)
-    private MediaType mediaType; // IMAGE or VIDEO
+    private String mediaType; // IMAGE or VIDEO
 
-    // ✅ Relation with Post
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "post_id", nullable = false)
-    private Post post;
+    @Column(name = "post_id", nullable = false)
+    private UUID postId;
 
     // ✅ Getters & Setters
     public UUID getId() { return id; }
@@ -30,9 +27,9 @@ public class Media {
     public String getMediaUrl() { return mediaUrl; }
     public void setMediaUrl(String mediaUrl) { this.mediaUrl = mediaUrl; }
 
-    public MediaType getMediaType() { return mediaType; }
-    public void setMediaType(MediaType mediaType) { this.mediaType = mediaType; }
+    public String getMediaType() { return mediaType; }
+    public void setMediaType(String mediaType) { this.mediaType = mediaType; }
+    public UUID getPostId() { return postId; }
+    public void setPostId(UUID postId) { this.postId = postId; }
 
-    public Post getPost() { return post; }
-    public void setPost(Post post) { this.post = post; }
 }
